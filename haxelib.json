@@ -1,0 +1,20 @@
+{
+  "name": "hx-astcenc",
+  "url": "",
+  "license": "MIT",
+  "tags": [
+    "encode",
+    "astc"
+  ],
+  "description": "ASTC编码器",
+  "version": "0.0.1",
+  "releasenote": "",
+  "contributors": [
+    "rainy"
+  ],
+  "classPath": "src",
+  "dependencies": {
+    "openfl": "",
+    "lime": ""
+  }
+}
