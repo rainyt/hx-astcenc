@@ -12,6 +12,7 @@
   "contributors": [
     "rainy"
   ],
+  "main": "Tools",
   "classPath": "src",
   "dependencies": {
     "openfl": "",
