@@ -46,8 +46,10 @@ class Tools {
 	 * 通过JSON配置进行转换处理
 	 * @param json 
 	 */
-	public static function runJson(json:ASTCJsonConfig):Void {
-		converToAstc(json.path, json.output, json);
+	public static function runJson(list:Array<ASTCJsonConfig>):Void {
+		for (json in list) {
+			converToAstc(json.path, json.output, json);
+		}
 		HashCache.getInstance().save();
 	}
 
@@ -66,8 +68,9 @@ class Tools {
 				converToAstc(filePath, outFilePath, json);
 			}
 		} else if (path.endsWith(".png")) {
+			topath = topath.replace(".png", ".astc");
 			trace("converTo", path, topath);
-			if (HashCache.getInstance().isChange(path)) {
+			if (HashCache.getInstance().isChange(path) || !FileSystem.exists(topath)) {
 				// 开始转换为astc格式
 				var dir = Path.directory(topath);
 				if (!FileSystem.exists(dir)) {
@@ -77,7 +80,7 @@ class Tools {
 					var astcEncode = new ASTCEncode(json.mode, path);
 					astcEncode.alphaPremultiply = json.alphaPremultiply;
 					astcEncode.zlib = json.zlib;
-					astcEncode.encode(topath.replace(".png", ".astc"), json.defaultBlock, json.quality);
+					astcEncode.encode(topath, json.defaultBlock, json.quality);
 					HashCache.getInstance().update(path);
 				} catch (e:Exception) {
 					if (!json.igroneError) {
