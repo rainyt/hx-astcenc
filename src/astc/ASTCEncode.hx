@@ -1,5 +1,6 @@
 package astc;
 
+import haxe.Exception;
 import openfl.utils.ByteArray;
 import sys.io.File;
 import haxe.io.Bytes;
@@ -53,17 +54,16 @@ class ASTCEncode {
 		if (alphaPremultiply) {
 			args.push("-pp-premultiply");
 		}
-		trace("run ", args.join(" "));
 		Sys.command(Tools.astcencPath, args);
-		try {
-			if (zlib) {
+		if (zlib) {
+			try {
 				bytes = File.getBytes(saveTo);
 				var byteArray:ByteArray = ByteArray.fromBytes(bytes);
 				byteArray.compress();
 				File.saveBytes(saveTo, byteArray);
+			} catch (e:Exception) {
+				throw e;
 			}
-		} catch (e) {
-			trace(e);
 		}
 	}
 }
