@@ -7,5 +7,6 @@ typedef ASTCJsonConfig = {
 	quality:Quality,
 	alphaPremultiply:Bool,
 	path:String,
-	output:String
+	output:String,
+	igroneError:Bool
 }

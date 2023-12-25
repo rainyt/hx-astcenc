@@ -1,3 +1,5 @@
+import haxe.Exception;
+import utils.HashCache;
 import haxe.Json;
 import astc.ASTCEncode;
 import sys.FileSystem;
@@ -46,6 +48,7 @@ class Tools {
 	 */
 	public static function runJson(json:ASTCJsonConfig):Void {
 		converToAstc(json.path, json.output, json);
+		HashCache.getInstance().save();
 	}
 
 	/**
@@ -64,15 +67,27 @@ class Tools {
 			}
 		} else if (path.endsWith(".png")) {
 			trace("converTo", path, topath);
-			// 开始转换为astc格式
-			var dir = Path.directory(topath);
-			if (!FileSystem.exists(dir)) {
-				FileSystem.createDirectory(dir);
+			if (HashCache.getInstance().isChange(path)) {
+				// 开始转换为astc格式
+				var dir = Path.directory(topath);
+				if (!FileSystem.exists(dir)) {
+					FileSystem.createDirectory(dir);
+				}
+				try {
+					var astcEncode = new ASTCEncode(json.mode, path);
+					astcEncode.alphaPremultiply = json.alphaPremultiply;
+					astcEncode.zlib = json.zlib;
+					astcEncode.encode(topath.replace(".png", ".astc"), json.defaultBlock, json.quality);
+					HashCache.getInstance().update(path);
+				} catch (e:Exception) {
+					if (!json.igroneError) {
+						HashCache.getInstance().save();
+						throw e;
+					}
+				}
+			} else {
+				trace("Skip", path);
 			}
-			var astcEncode = new ASTCEncode(json.mode, path);
-			astcEncode.alphaPremultiply = json.alphaPremultiply;
-			astcEncode.zlib = json.zlib;
-			astcEncode.encode(topath.replace(".png", ".astc"), json.defaultBlock, json.quality);
 		}
 	}
 }

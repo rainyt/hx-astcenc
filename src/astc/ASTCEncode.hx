@@ -1,5 +1,6 @@
 package astc;
 
+import utils.HashCache;
 import haxe.Exception;
 import openfl.utils.ByteArray;
 import sys.io.File;
@@ -62,6 +63,7 @@ class ASTCEncode {
 				byteArray.compress();
 				File.saveBytes(saveTo, byteArray);
 			} catch (e:Exception) {
+				HashCache.getInstance().error(path + '(${e.message})');
 				throw e;
 			}
 		}
