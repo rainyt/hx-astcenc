@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<meta title="Example" package="com.sample.example" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="Example" />
+
+	<source path="Source" />
+
+	<haxelib name="openfl" />
+
+	<haxelib name="hx-astcenc" />
+
+	<assets path="Assets" rename="assets" embed="false" />
+
+</project>

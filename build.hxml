@@ -1,4 +1,4 @@
---class-path src
+--class-path encode_src
 --main Tools
 --library openfl
 --library lime

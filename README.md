@@ -32,7 +32,25 @@ Use Json data create all ASTC file.
     }
 ]
 ```
-Command:
+### Command:
 ```shell
 haxelib run hx-astcenc file.json
+```
+
+# OpenFL Target ASTC Texture Support
+```haxe
+import openfl.display.ASTCBitmapData;
+
+// Create from Bytes
+ASTCBitmapData.formBytes(bytes);
+if (ASTCBitmapData.isSupportASTCConfig()) {
+    trace("Support ASTC Config");
+}
+// Create from url or local path
+ASTCBitmapData.loadFromFile("assets/4x4.astc").onComplete(data -> {
+    var bitmap = new Bitmap(data);
+    this.addChild(bitmap);
+}).onError(err -> {
+    trace("Load fail", err);
+});
 ```
