@@ -17,7 +17,7 @@ class ASTCLoader extends openfl.utils.Future<ASTCBitmapData> {
 		loader.dataFormat = URLLoaderDataFormat.BINARY;
 		loader.addEventListener(Event.COMPLETE, e -> {
 			try {
-				var bitmapData = ASTCBitmapData.formBytes(loader.data);
+				var bitmapData = ASTCBitmapData.fromBytes(loader.data);
 				this.value = bitmapData;
 				this.isComplete = true;
 				if (__completeListeners != null)

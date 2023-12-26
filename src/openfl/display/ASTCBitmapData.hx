@@ -58,7 +58,7 @@ class ASTCBitmapData extends BitmapData {
 	 * @param bytes A haxe.io.Bytes or openfl.utils.ByteArray, It is ASTC Texture Fromat.
 	 * @return ASTCBitmapData
 	 */
-	public static function formBytes(bytes:Bytes):ASTCBitmapData {
+	public static function fromBytes(bytes:Bytes):ASTCBitmapData {
 		if (bytes == null)
 			throw "Bytes is null.";
 		if (isZlibFile(bytes)) {

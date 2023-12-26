@@ -7,7 +7,7 @@ import openfl.display.Sprite;
 class Main extends Sprite {
 	public function new() {
 		super();
-		// ASTCBitmapData.formBytes(bytes);
+		// ASTCBitmapData.fromBytes(bytes);
 		if (ASTCBitmapData.isSupportASTCConfig()) {
 			trace("Support ASTC Config");
 		}
