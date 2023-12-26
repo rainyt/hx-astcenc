@@ -1,0 +1,10 @@
+--class-path src
+--class-path test
+--cpp bin/cpp
+--no-output
+--library openfl
+--library lime
+--library hx-ios-uikit
+--define ios
+--main IOSMain
+--define objc

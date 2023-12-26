@@ -126,6 +126,18 @@ class ASTCBitmapData extends BitmapData {
 	 * @return ASTCBitmapData
 	 */
 	public static function loadFromFile(url:String):Future<ASTCBitmapData> {
-        return new ASTCLoader(url);
+		return new ASTCLoader(url);
 	}
+
+	#if ios
+	/**
+	 * Load png conver to ASTC texture, Only IOS sdk 10+ version suppport.
+	 * @param url 
+	 * @return Future<ASTCBitmapData>
+	 */
+	@:noCompletion
+	public static function loadFromPngFile(url:String):Future<ASTCBitmapData> {
+		return null;
+	}
+	#end
 }
