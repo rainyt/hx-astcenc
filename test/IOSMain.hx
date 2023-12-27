@@ -1,8 +1,8 @@
-// import openfl.astc.ios.AppleASTCLoader;
+import openfl.astc.ios.AppleASTCLoader;
 
 class IOSMain {
 	static function main() {
-		// AppleASTCLoader;
-        trace("");
+		AppleASTCLoader;
+		trace("");
 	}
 }

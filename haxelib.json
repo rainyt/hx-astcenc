@@ -6,7 +6,7 @@
     "encode",
     "astc"
   ],
-  "description": "ASTC编码器",
+  "description": "ASTC Encoder and OpenFL ASTC Texture BitmapData.",
   "version": "0.0.1",
   "releasenote": "",
   "contributors": [
