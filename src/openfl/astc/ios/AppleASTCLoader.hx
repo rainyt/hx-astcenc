@@ -1,11 +1,11 @@
 package openfl.astc.ios;
 
+#if hx_ios_uikit
 import haxe.io.Path;
 import cpp.objc.NSDictionary;
 import cpp.objc.NSData;
 import haxe.io.Bytes;
 import ios.objc.CGImage;
-#if hx_ios_uikit
 import ios.foundation.NSMutableData;
 import ios.metal.MTLTextureDescriptor;
 import ios.metal.MTLCommandEncoder;
