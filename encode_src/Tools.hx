@@ -17,7 +17,8 @@ class Tools {
 		var args = Sys.args();
 		var path = args.pop();
 		var current = Sys.getCwd();
-		astcencPath = Path.join([current, "./tools/astcenc"]);
+		var isWindow = Sys.systemName() == "Windows";
+		astcencPath = Path.join([current, "./tools/astcenc" + (isWindow ? ".exe" : "")]);
 		// 是否使用json配置
 		if (args[0].indexOf(".json") != -1) {
 			Sys.setCwd(path);
