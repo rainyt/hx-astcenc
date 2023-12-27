@@ -1,18 +1,14 @@
 package openfl.astc.ios;
 
+import haxe.io.BytesBuffer;
 #if hx_ios_uikit
 import haxe.io.Path;
 import cpp.objc.NSDictionary;
 import cpp.objc.NSData;
 import haxe.io.Bytes;
-import ios.objc.CGImage;
 import ios.foundation.NSMutableData;
-import ios.metal.MTLTextureDescriptor;
-import ios.metal.MTLCommandEncoder;
 import sys.io.File;
-import ios.objc.CGImageDestination;
 import ios.uikit.UIImage;
-import ios.metal.MTLTexture;
 
 @:cppFileCode('
 #include "UIKit/UIKit.h"
@@ -45,7 +41,34 @@ class AppleASTCLoader {
 		var astcNSData:NSData = untyped data;
 		var astcBytes = astcNSData.toBytes();
 		trace("astcBytes.length", astcBytes.length);
-		return astcBytes;
+		var headerBytes = Bytes.alloc(16);
+		// 魔数
+		headerBytes.set(0, 0x13);
+		headerBytes.set(1, 0xAB);
+		headerBytes.set(2, 0xA1);
+		headerBytes.set(3, 0x5C);
+		// Block
+		headerBytes.set(4, 8);
+		headerBytes.set(5, 8);
+		//
+		var textureWidth = Math.floor(image.size.width);
+		var textureHeight = Math.floor(image.size.height);
+		trace("textureSize", textureWidth, textureHeight);
+		headerBytes.set(6, textureWidth & 0xFF);
+		headerBytes.set(7, (textureWidth >> 8) & 0xFF);
+		headerBytes.set(8, (textureWidth >> 16) & 0xFF);
+		headerBytes.set(9, textureHeight & 0xFF);
+		headerBytes.set(10, (textureHeight >> 8) & 0xFF);
+		headerBytes.set(11, (textureHeight >> 16) & 0xFF);
+		headerBytes.set(12, 1);
+		headerBytes.set(13, 0);
+		headerBytes.set(14, 0);
+		headerBytes.set(15, 0);
+		var allBytes:BytesBuffer = new BytesBuffer();
+		allBytes.addBytes(headerBytes, 0, headerBytes.length);
+		allBytes.addBytes(astcBytes, 0, astcBytes.length);
+		trace("allBytes", allBytes.length);
+		return allBytes.getBytes();
 	}
 
 	/**
