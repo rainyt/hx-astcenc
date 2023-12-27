@@ -1,6 +1,9 @@
 # hx-astcenc
  Create ASTC format texture file.
 
+## About
+Current only mac support now. About window, Need do `haxe build.hxml` to build window target.
+
 # Use
 ```shell
 haxelib run hx-astcenc c -cl ./ChristGiftViewAtlas.png ./texture_zilb.astc 4x4 -exhaustive -pp-premultiply
@@ -42,7 +45,7 @@ haxelib run hx-astcenc file.json
 import openfl.display.ASTCBitmapData;
 
 // Create from Bytes
-ASTCBitmapData.formBytes(bytes);
+ASTCBitmapData.fromBytes(bytes);
 if (ASTCBitmapData.isSupportASTCConfig()) {
     trace("Support ASTC Config");
 }
