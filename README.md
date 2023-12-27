@@ -2,7 +2,7 @@
  Create ASTC format texture file.
 
 ## About
-Current only mac support now. About window, Need do `haxe build.hxml` to build window target.
+Current only mac support now. About window, Need do `haxe build-window.hxml` to build window target.
 
 # Use
 ```shell

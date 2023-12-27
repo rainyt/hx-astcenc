@@ -1,0 +1,9 @@
+--class-path encode_src
+--main Tools
+--library openfl
+--library lime
+--cpp bin/cpp
+
+--next
+
+--cmd cp -rf ./bin/cpp/Tools ./tools/Tools
