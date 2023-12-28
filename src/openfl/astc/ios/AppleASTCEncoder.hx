@@ -15,20 +15,26 @@ import ios.uikit.UIImage;
 #include "UIKit/UIKit.h"
 #include "ImageIO/ImageIO.h"
 ')
-class AppleASTCLoader {
+class AppleASTCEncoder {
 	/**
-	 * 通过本地文件进行转换为ASTC纹理
+	 * 通过本地文件提供`PNG`图片路径，进行转换为ASTC纹理
 	 * @param path 本地路径
 	 * @param astcProperties 对ASTC编码时的参数配置支持
 	 * @return Bytes
 	 */
-	public static function convertToASTCFromFile(path:String, ?astcProperties:ASTCEncodeProperties):Bytes {
+	public static function encodeASTCFromFile(path:String, ?astcProperties:ASTCEncodeProperties):Bytes {
 		// 兼容IOS
 		var bytes = File.getBytes(Path.join(["assets", path]));
-		return convertToASTCFromBytes(bytes, astcProperties);
+		return encodeASTCFromBytes(bytes, astcProperties);
 	}
 
-	public static function convertToASTCFromBytes(bytes:Bytes, ?astcProperties:ASTCEncodeProperties):Bytes {
+	/**
+	 * 通过`PNG`图片二进制数据，进行转换为ASTC纹理
+	 * @param bytes 
+	 * @param astcProperties 
+	 * @return Bytes 当转换成功，则会返回`ASTC`的二进制数据，否则返回`null`
+	 */
+	public static function encodeASTCFromBytes(bytes:Bytes, ?astcProperties:ASTCEncodeProperties):Bytes {
 		var image = UIImage.imageWithData(bytes);
 		untyped __cpp__('CGImageRef source = {0}', image.CGImage());
 		var data:NSMutableData = NSMutableData.data();
