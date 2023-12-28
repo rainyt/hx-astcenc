@@ -1,5 +1,6 @@
 package openfl.display;
 
+import openfl.astc.ios.AppleASTCEncoder.ASTCEncodeProperties;
 import openfl.astc.ASTCLoader;
 import openfl.utils.Future;
 import openfl.events.IOErrorEvent;
@@ -137,8 +138,8 @@ class ASTCBitmapData extends BitmapData {
 	 * @param url 
 	 * @return Future<ASTCBitmapData>
 	 */
-	public static function loadFromPngFile(url:String):ASTCBitmapData {
-		var bytes = openfl.astc.ios.AppleASTCEncoder.encodeASTCFromFile(url);
+	public static function loadFromPngFile(url:String, ?astcProperties:ASTCEncodeProperties):ASTCBitmapData {
+		var bytes = openfl.astc.ios.AppleASTCEncoder.encodeASTCFromFile(url, astcProperties);
 		if (bytes == null) {
 			trace("Bytes is null.");
 			return null;
