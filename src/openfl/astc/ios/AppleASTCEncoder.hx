@@ -11,6 +11,9 @@ import ios.foundation.NSMutableData;
 import sys.io.File;
 import ios.uikit.UIImage;
 
+/**
+ * Apple ASTC Texture encoder.
+ */
 @:cppFileCode('
 #include "UIKit/UIKit.h"
 #include "ImageIO/ImageIO.h"

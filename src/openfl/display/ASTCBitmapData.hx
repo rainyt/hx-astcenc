@@ -123,6 +123,8 @@ class ASTCBitmapData extends BitmapData {
 	 *	load and image decoding will occur in the background.
 	 *	Progress, completion and error callbacks will be dispatched in the current
 	 *	thread using callbacks attached to a returned Future object.
+	 * #### IOS AppleASTCEncoder support
+	 * **IOS** loadFromPngFile
 	 * @return ASTCBitmapData
 	 */
 	public static function loadFromFile(url:String):Future<ASTCBitmapData> {
@@ -135,9 +137,9 @@ class ASTCBitmapData extends BitmapData {
 	 * @param url 
 	 * @return Future<ASTCBitmapData>
 	 */
-	@:noCompletion
-	public static function loadFromPngFile(url:String):Future<ASTCBitmapData> {
-		return null;
+	public static function loadFromPngFile(url:String):ASTCBitmapData {
+		var bytes = openfl.astc.ios.AppleASTCEncoder.encodeASTCFromFile("assets/ui/ChristGiftViewAtlas.png");
+		return openfl.display.ASTCBitmapData.fromBytes(bytes);
 	}
 	#end
 }
