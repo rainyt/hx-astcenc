@@ -1,7 +1,5 @@
 package openfl.astc.ios;
 
-import openfl.astc.ios.ASTCBlockSize;
-import haxe.io.BytesBuffer;
 #if hx_ios_uikit
 import haxe.io.Path;
 import cpp.objc.NSDictionary;
@@ -10,6 +8,19 @@ import haxe.io.Bytes;
 import ios.foundation.NSMutableData;
 import sys.io.File;
 import ios.uikit.UIImage;
+import ios.objc.CGImage;
+import openfl.astc.ios.ASTCBlockSize;
+#if openfl
+import openfl.display.BitmapData;
+#end
+#if lime
+import cpp.UInt32;
+import cpp.Pointer;
+import cpp.NativeArray;
+import lime.graphics.ImageBuffer;
+import lime.graphics.Image;
+import lime.graphics.PixelFormat;
+#end
 
 /**
  * Apple ASTC Texture encoder.
@@ -18,14 +29,66 @@ import ios.uikit.UIImage;
 #include "UIKit/UIKit.h"
 #include "ImageIO/ImageIO.h"
 ')
+
 class AppleASTCEncoder {
+
+	#if openfl
+	/**
+	 * 通过`BitmapData`对象，进行转换为ASTC纹理
+	 * @param bitmapData
+	 * @param astcProperties 对ASTC编码时的参数配置支持
+	 * @return Null<Bytes>
+	 */
+	public static function encodeASTCFromBitmapData(bitmapData:BitmapData, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
+		if (bitmapData == null || bitmapData.image == null)
+			return null;
+
+		return encodeASTCFromImage(bitmapData.image, astcProperties);
+	}
+	#end
+
+	#if lime
+	public static function encodeASTCFromImage(image:Image, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
+		if (astcProperties == null)
+			astcProperties = {};
+
+		var imageBuffer:ImageBuffer = image.buffer;
+		astcProperties.alphaPermultiplied = imageBuffer.premultiplied;
+
+		var bitmapInfo:UInt32 = 0;
+		var pixelFormat:PixelFormat = imageBuffer.format;
+		if(pixelFormat == PixelFormat.ARGB32)
+		{
+			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Big");
+		}else if(pixelFormat == PixelFormat.RGBA32)
+		{
+			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big");
+
+		}else if(pixelFormat == PixelFormat.BGRA32)
+		{
+			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little");
+		}
+
+		var nativeImageData:Pointer<cpp.UInt8> = NativeArray.address(imageBuffer.data.toBytes().getData(), 0);
+
+		untyped __cpp__("
+        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+        CGContextRef bitmapContext=CGBitmapContextCreate({0}, {1}, {2}, 8, 4 * {1}, colorSpace, {3});
+        CFRelease(colorSpace);
+        CGImageRef cgImage=CGBitmapContextCreateImage(bitmapContext);
+        CGContextRelease(bitmapContext);", nativeImageData, image.width, image.height, bitmapInfo);
+
+		return encodeASTCFromCGImage(untyped __cpp__("cgImage"), astcProperties);
+	}
+	#end
+
 	/**
 	 * 通过本地文件提供`PNG`图片路径，进行转换为ASTC纹理
 	 * @param path 本地路径
 	 * @param astcProperties 对ASTC编码时的参数配置支持
-	 * @return Bytes
+	 * @return Null<Bytes>
 	 */
-	public static function encodeASTCFromFile(path:String, ?astcProperties:ASTCEncodeProperties):Bytes {
+	public static function encodeASTCFromFile(path:String, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
 		// 兼容IOS
 		var bytes = File.getBytes(Path.join(["assets", path]));
 		return encodeASTCFromBytes(bytes, astcProperties);
@@ -33,56 +96,74 @@ class AppleASTCEncoder {
 
 	/**
 	 * 通过`PNG`图片二进制数据，进行转换为ASTC纹理
-	 * @param bytes 
-	 * @param astcProperties 
-	 * @return Bytes 当转换成功，则会返回`ASTC`的二进制数据，否则返回`null`
+	 * @param bytes
+	 * @param astcProperties
+	 * @return Null<Bytes>
 	 */
-	public static function encodeASTCFromBytes(bytes:Bytes, ?astcProperties:ASTCEncodeProperties):Bytes {
-		if (bytes == null) {
+	public static function encodeASTCFromBytes(bytes:Bytes, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
+		if (bytes == null)
 			return null;
-		}
+
 		if (astcProperties == null)
 			astcProperties = {};
+
 		var uiimage = UIImage.imageWithData(bytes);
 		untyped __cpp__('CGImageRef source = {0}', uiimage.CGImage());
+
+		var astcBytes:Bytes = encodeASTCFromCGImage(untyped __cpp__("source"), astcProperties);
+		return astcBytes;
+	}
+
+	/**
+	 * 通过`CGImage`对象，进行转换为ASTC纹理
+	 * @param cgImage
+	 * @param astcProperties
+	 * @return Null<Bytes>
+	 */
+	public static function encodeASTCFromCGImage(source:cpp.Pointer<CGImage>, ?astcProperties:ASTCEncodeProperties):Null<Bytes>
+	{
+		if (source == null)
+			return null;
+
+		if (astcProperties == null)
+			astcProperties = {};
 
 		if (astcProperties.alphaPermultiplied == null || astcProperties.alphaPermultiplied == true) {
 			untyped __cpp__('
 			// 获取原始CGImage的其他参数
-			size_t width = CGImageGetWidth(source);
-			size_t height = CGImageGetHeight(source);
-			size_t bitsPerComponent = CGImageGetBitsPerComponent(source);
-			size_t bitsPerPixel = CGImageGetBitsPerPixel(source);
-			size_t bytesPerRow = CGImageGetBytesPerRow(source);
-			CGColorSpaceRef colorSpace = CGImageGetColorSpace(source);
-			CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(source);
-			CGDataProviderRef dataProvider = CGImageGetDataProvider(source);
-			bool shouldInterpolate = CGImageGetShouldInterpolate(source);
-			CGColorRenderingIntent intent = CGImageGetRenderingIntent(source);
+			size_t width = CGImageGetWidth({0});
+			size_t height = CGImageGetHeight({0});
+			size_t bitsPerComponent = CGImageGetBitsPerComponent({0});
+			size_t bitsPerPixel = CGImageGetBitsPerPixel({0});
+			size_t bytesPerRow = CGImageGetBytesPerRow({0});
+			CGColorSpaceRef colorSpace = CGImageGetColorSpace({0});
+			CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo({0});
+			CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
+			bool shouldInterpolate = CGImageGetShouldInterpolate({0});
+			CGColorRenderingIntent intent = CGImageGetRenderingIntent({0});
 
 			// 创建一个新的CGImage，指定新的alpha信息
-			CGImageRef oldImage = source;
-			CGImageRef image = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | (bitmapInfo & kCGBitmapByteOrderMask), dataProvider, CGImageGetDecode(source), shouldInterpolate, intent);
-			source = image;
-			CGImageRelease(oldImage)');
-
+			CGImageRef oldImage = {0};
+			CGImageRef image = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | (bitmapInfo & kCGBitmapByteOrderMask), dataProvider, CGImageGetDecode({0}), shouldInterpolate, intent);
+			{0} = image;
+			CGImageRelease(oldImage)', source);
 		}
 
 		var data:NSMutableData = NSMutableData.data();
 		untyped __cpp__('CGImageDestinationRef destination = {0}',
-			untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
+		untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
 		var properties:NSDictionary = NSDictionary.fromDynamic({
 			"kCGImagePropertyASTCFlipVertically": astcProperties.filpVertically != null ? astcProperties.filpVertically : false,
 			"kCGImagePropertyASTCBlockSize": astcProperties.blockSize != null ? astcProperties.blockSize : 0x88,
 			"kCGImageDestinationLossyCompressionQuality": astcProperties.quality != null ? astcProperties.quality : 0
 		});
 		untyped __cpp__('
-        CGImageDestinationAddImage({0}, {1}, (CFDictionaryRef){2});
-		CGImageDestinationFinalize({0})', destination, source, properties);
+        CGImageDestinationAddImage(destination, {0}, (CFDictionaryRef){1});
+		CGImageDestinationFinalize(destination)', source, properties);
 		var astcNSData:NSData = untyped data;
 		var astcBytes = astcNSData.toBytes();
 
-		untyped __cpp__('CGImageRelease(source)');
+		untyped __cpp__('CGImageRelease({0})', source);
 		return astcBytes;
 	}
 }
