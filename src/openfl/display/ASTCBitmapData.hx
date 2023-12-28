@@ -138,7 +138,11 @@ class ASTCBitmapData extends BitmapData {
 	 * @return Future<ASTCBitmapData>
 	 */
 	public static function loadFromPngFile(url:String):ASTCBitmapData {
-		var bytes = openfl.astc.ios.AppleASTCEncoder.encodeASTCFromFile("assets/ui/ChristGiftViewAtlas.png");
+		var bytes = openfl.astc.ios.AppleASTCEncoder.encodeASTCFromFile(url);
+		if (bytes == null) {
+			trace("Bytes is null.");
+			return null;
+		}
 		return openfl.display.ASTCBitmapData.fromBytes(bytes);
 	}
 	#end

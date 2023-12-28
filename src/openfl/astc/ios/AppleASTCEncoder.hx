@@ -38,6 +38,11 @@ class AppleASTCEncoder {
 	 * @return Bytes 当转换成功，则会返回`ASTC`的二进制数据，否则返回`null`
 	 */
 	public static function encodeASTCFromBytes(bytes:Bytes, ?astcProperties:ASTCEncodeProperties):Bytes {
+		if (bytes == null) {
+			return null;
+		}
+		if (astcProperties == null)
+			astcProperties = {};
 		var image = UIImage.imageWithData(bytes);
 		untyped __cpp__('CGImageRef source = {0}', image.CGImage());
 		var data:NSMutableData = NSMutableData.data();
@@ -48,7 +53,7 @@ class AppleASTCEncoder {
 			"kCGImagePropertyASTCBlockSize": astcProperties.blockSize != null ? astcProperties.blockSize : 0x88,
 			"kCGImageDestinationLossyCompressionQuality": astcProperties.quality != null ? astcProperties.quality : 0,
 			"kCGImagePropertyHasAlpha": true,
-			"kCGImageAlphaInfo": 2
+			"kCGImagePropertyPremultipliedAlpha": true
 		});
 		untyped __cpp__('
         CGImageDestinationAddImage({0}, {1}, (CFDictionaryRef){2});
