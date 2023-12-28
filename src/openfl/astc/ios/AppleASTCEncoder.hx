@@ -43,23 +43,46 @@ class AppleASTCEncoder {
 		}
 		if (astcProperties == null)
 			astcProperties = {};
-		var image = UIImage.imageWithData(bytes);
-		untyped __cpp__('CGImageRef source = {0}', image.CGImage());
+		var uiimage = UIImage.imageWithData(bytes);
+		untyped __cpp__('CGImageRef source = {0}', uiimage.CGImage());
+
+		if (astcProperties.alphaPermultiplied == null || astcProperties.alphaPermultiplied == true) {
+			untyped __cpp__('
+			// 获取原始CGImage的其他参数
+			size_t width = CGImageGetWidth(source);
+			size_t height = CGImageGetHeight(source);
+			size_t bitsPerComponent = CGImageGetBitsPerComponent(source);
+			size_t bitsPerPixel = CGImageGetBitsPerPixel(source);
+			size_t bytesPerRow = CGImageGetBytesPerRow(source);
+			CGColorSpaceRef colorSpace = CGImageGetColorSpace(source);
+			CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(source);
+			CGDataProviderRef dataProvider = CGImageGetDataProvider(source);
+			bool shouldInterpolate = CGImageGetShouldInterpolate(source);
+			CGColorRenderingIntent intent = CGImageGetRenderingIntent(source);
+
+			// 创建一个新的CGImage，指定新的alpha信息
+			CGImageRef oldImage = source;
+			CGImageRef image = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | (bitmapInfo & kCGBitmapByteOrderMask), dataProvider, CGImageGetDecode(source), shouldInterpolate, intent);
+			source = image;
+			CGImageRelease(oldImage)');
+
+		}
+
 		var data:NSMutableData = NSMutableData.data();
 		untyped __cpp__('CGImageDestinationRef destination = {0}',
 			untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
 		var properties:NSDictionary = NSDictionary.fromDynamic({
 			"kCGImagePropertyASTCFlipVertically": astcProperties.filpVertically != null ? astcProperties.filpVertically : false,
 			"kCGImagePropertyASTCBlockSize": astcProperties.blockSize != null ? astcProperties.blockSize : 0x88,
-			"kCGImageDestinationLossyCompressionQuality": astcProperties.quality != null ? astcProperties.quality : 0,
-			"kCGImagePropertyHasAlpha": true,
-			"kCGImagePropertyPremultipliedAlpha": true
+			"kCGImageDestinationLossyCompressionQuality": astcProperties.quality != null ? astcProperties.quality : 0
 		});
 		untyped __cpp__('
         CGImageDestinationAddImage({0}, {1}, (CFDictionaryRef){2});
 		CGImageDestinationFinalize({0})', destination, source, properties);
 		var astcNSData:NSData = untyped data;
 		var astcBytes = astcNSData.toBytes();
+
+		untyped __cpp__('CGImageRelease(source)');
 		return astcBytes;
 	}
 }
@@ -82,5 +105,10 @@ typedef ASTCEncodeProperties = {
 	 * 压缩质量，有效值为`0`-`1`，默认为`0`
 	 */
 	var ?quality:Float;
+
+	/**
+	 * 是否开启透明预乘，默认为`true`
+	 */
+	var ?alphaPermultiplied:Bool;
 }
 #end
