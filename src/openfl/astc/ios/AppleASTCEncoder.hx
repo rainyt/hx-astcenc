@@ -73,9 +73,9 @@ class AppleASTCEncoder {
 
 		untyped __cpp__("
         CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-        CGContextRef bitmapContext=CGBitmapContextCreate({0}, {1}, {2}, 8, 4 * {1}, colorSpace, {3});
-        CFRelease(colorSpace);
-        CGImageRef cgImage=CGBitmapContextCreateImage(bitmapContext);
+        CGContextRef bitmapContext = CGBitmapContextCreate({0}, {1}, {2}, 8, 4 * {1}, colorSpace, {3});
+        CGColorSpaceRelease(colorSpace);
+        CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext);
         CGContextRelease(bitmapContext);", nativeImageData, image.width, image.height, bitmapInfo);
 
 		return encodeASTCFromCGImage(untyped __cpp__("cgImage"), astcProperties);
@@ -146,12 +146,14 @@ class AppleASTCEncoder {
 			CGImageRef oldImage = {0};
 			CGImageRef image = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | (bitmapInfo & kCGBitmapByteOrderMask), dataProvider, CGImageGetDecode({0}), shouldInterpolate, intent);
 			{0} = image;
-			CGImageRelease(oldImage)', source);
+			CGColorSpaceRelease(colorSpace);
+			CGDataProviderRelease(dataProvider);
+			CGImageRelease(oldImage);', source);
 		}
 
 		var data:NSMutableData = NSMutableData.data();
 		untyped __cpp__('CGImageDestinationRef destination = {0}',
-		untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
+	untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
 		var properties:NSDictionary = NSDictionary.fromDynamic({
 			"kCGImagePropertyASTCFlipVertically": astcProperties.filpVertically != null ? astcProperties.filpVertically : false,
 			"kCGImagePropertyASTCBlockSize": astcProperties.blockSize != null ? astcProperties.blockSize : 0x88,
@@ -159,7 +161,8 @@ class AppleASTCEncoder {
 		});
 		untyped __cpp__('
         CGImageDestinationAddImage(destination, {0}, (CFDictionaryRef){1});
-		CGImageDestinationFinalize(destination)', source, properties);
+		CGImageDestinationFinalize(destination);
+		CFRelease(destination);', source, properties);
 		var astcNSData:NSData = untyped data;
 		var astcBytes = astcNSData.toBytes();
 
