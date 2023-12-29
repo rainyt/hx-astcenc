@@ -57,7 +57,6 @@ class AppleASTCEncoder {
 			astcProperties = {};
 
 		var imageBuffer:ImageBuffer = image.buffer;
-		astcProperties.alphaPermultiplied = !imageBuffer.premultiplied;
 
 		var bitmapInfo:UInt32 = 0;
 		var pixelFormat:PixelFormat = imageBuffer.format;
@@ -110,6 +109,9 @@ class AppleASTCEncoder {
 		var uiimage = UIImage.imageWithData(bytes);
 		untyped __cpp__('CGImageRef source = {0}', uiimage.CGImage());
 
+		if (astcProperties.alphaPermultiplied == null)
+			astcProperties.alphaPermultiplied = true;
+
 		var astcBytes:Bytes = encodeASTCFromCGImage(untyped __cpp__("source"), astcProperties);
 		return astcBytes;
 	}
@@ -127,7 +129,7 @@ class AppleASTCEncoder {
 		if (astcProperties == null)
 			astcProperties = {};
 
-		if (astcProperties.alphaPermultiplied == null || astcProperties.alphaPermultiplied == true) {
+		if (astcProperties.alphaPermultiplied == true) {
 			untyped __cpp__('
 			// 获取原始CGImage的其他参数
 			size_t width = CGImageGetWidth({0});
@@ -140,15 +142,11 @@ class AppleASTCEncoder {
 			CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
 			bool shouldInterpolate = CGImageGetShouldInterpolate({0});
 			CGColorRenderingIntent intent = CGImageGetRenderingIntent({0});
-
 			// 创建一个新的CGImage，指定新的alpha信息
 			CGImageRef oldImage = {0};
 			CGImageRef image = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | (bitmapInfo & kCGBitmapByteOrderMask), dataProvider, CGImageGetDecode({0}), shouldInterpolate, intent);
 			{0} = image;
-			CGColorSpaceRelease(colorSpace);
-			CGDataProviderRelease(dataProvider);
 			CGImageRelease(oldImage);', source);
-
 		}
 
 		var data:NSMutableData = NSMutableData.data();
@@ -159,14 +157,27 @@ class AppleASTCEncoder {
 			"kCGImagePropertyASTCBlockSize": astcProperties.blockSize != null ? astcProperties.blockSize : 0x88,
 			"kCGImageDestinationLossyCompressionQuality": astcProperties.quality != null ? astcProperties.quality : 0
 		});
+		var isFinalize = false;
 		untyped __cpp__('
         CGImageDestinationAddImage(destination, {0}, (CFDictionaryRef){1});
-		CGImageDestinationFinalize(destination);
-		CFRelease(destination);', source, properties);
+		if(CGImageDestinationFinalize(destination)){
+			{2} = true;
+		};
+		CFRelease(destination);', source, properties, isFinalize);
+		if (!isFinalize) {
+			trace("isFinalize = false");
+			return null;
+		}
 		var astcNSData:NSData = untyped data;
 		var astcBytes = astcNSData.toBytes();
 
-		untyped __cpp__('CGImageRelease({0})', source);
+		untyped __cpp__('
+		// Freed all
+		CGColorSpaceRef colorSpace = CGImageGetColorSpace({0});
+		CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
+		CGColorSpaceRelease(colorSpace);
+		CGDataProviderRelease(dataProvider);
+		CGImageRelease({0})', source);
 		return astcBytes;
 	}
 }
@@ -204,9 +215,10 @@ typedef ASTCEncodeProperties = {
 
 	/**
 	 * ##### CN
-	 * 是否开启透明预乘，默认为`true`
+	 * 是否开启透明预乘，默认为`null`，当为`true`时，则会进行透明预乘格式转换，重新生成一个新的`CGImage`
 	 * ##### EN
-	 * Whether to enable transparent pre multiplication, default to `true`
+	 * Whether to enable transparent pre multiplication, default to `null`. When it is `true`,
+	 * transparent pre multiplication format conversion will be performed, and a new `CGImage` will be generated
 	 */
 	var ?alphaPermultiplied:Bool;
 }
