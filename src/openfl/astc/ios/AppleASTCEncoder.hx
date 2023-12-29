@@ -29,14 +29,12 @@ import lime.graphics.PixelFormat;
 #include "UIKit/UIKit.h"
 #include "ImageIO/ImageIO.h"
 ')
-
 class AppleASTCEncoder {
-
 	#if openfl
 	/**
-	 * 通过`BitmapData`对象，进行转换为ASTC纹理
-	 * @param bitmapData
-	 * @param astcProperties 对ASTC编码时的参数配置支持
+	 * Create a `Bytes` from `BitmapData`, Will do it conver to ASTC Texture bytes.
+	 * @param bitmapData A BitmapData
+	 * @param astcProperties ASTC Properties
 	 * @return Null<Bytes>
 	 */
 	public static function encodeASTCFromBitmapData(bitmapData:BitmapData, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
@@ -48,6 +46,12 @@ class AppleASTCEncoder {
 	#end
 
 	#if lime
+	/**
+	 * Create a `Bytes` from `lime.graphics.Image`, Will do it conver to ASTC Texture bytes.
+	 * @param image
+	 * @param astcProperties ASTC Properties
+	 * @return Null<Bytes>
+	 */
 	public static function encodeASTCFromImage(image:Image, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
 		if (astcProperties == null)
 			astcProperties = {};
@@ -57,15 +61,11 @@ class AppleASTCEncoder {
 
 		var bitmapInfo:UInt32 = 0;
 		var pixelFormat:PixelFormat = imageBuffer.format;
-		if(pixelFormat == PixelFormat.ARGB32)
-		{
+		if (pixelFormat == PixelFormat.ARGB32) {
 			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Big");
-		}else if(pixelFormat == PixelFormat.RGBA32)
-		{
+		} else if (pixelFormat == PixelFormat.RGBA32) {
 			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big");
-
-		}else if(pixelFormat == PixelFormat.BGRA32)
-		{
+		} else if (pixelFormat == PixelFormat.BGRA32) {
 			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little");
 		}
 
@@ -83,9 +83,9 @@ class AppleASTCEncoder {
 	#end
 
 	/**
-	 * 通过本地文件提供`PNG`图片路径，进行转换为ASTC纹理
-	 * @param path 本地路径
-	 * @param astcProperties 对ASTC编码时的参数配置支持
+	 * Provide the 'PNG' image path through a local file and convert it to an ASTC texture
+	 * @param path Local path
+	 * @param astcProperties ASTC Properties
 	 * @return Null<Bytes>
 	 */
 	public static function encodeASTCFromFile(path:String, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
@@ -95,9 +95,9 @@ class AppleASTCEncoder {
 	}
 
 	/**
-	 * 通过`PNG`图片二进制数据，进行转换为ASTC纹理
-	 * @param bytes
-	 * @param astcProperties
+	 * Convert binary data from PNG images to ASTC textures
+	 * @param bytes PNG Bytes
+	 * @param astcProperties ASTC Properties
 	 * @return Null<Bytes>
 	 */
 	public static function encodeASTCFromBytes(bytes:Bytes, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
@@ -115,13 +115,12 @@ class AppleASTCEncoder {
 	}
 
 	/**
-	 * 通过`CGImage`对象，进行转换为ASTC纹理
+	 * Convert to ASTC texture through the `CGImage` object
 	 * @param cgImage
 	 * @param astcProperties
 	 * @return Null<Bytes>
 	 */
-	public static function encodeASTCFromCGImage(source:cpp.Pointer<CGImage>, ?astcProperties:ASTCEncodeProperties):Null<Bytes>
-	{
+	public static function encodeASTCFromCGImage(source:cpp.Pointer<CGImage>, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
 		if (source == null)
 			return null;
 
@@ -149,11 +148,12 @@ class AppleASTCEncoder {
 			CGColorSpaceRelease(colorSpace);
 			CGDataProviderRelease(dataProvider);
 			CGImageRelease(oldImage);', source);
+
 		}
 
 		var data:NSMutableData = NSMutableData.data();
 		untyped __cpp__('CGImageDestinationRef destination = {0}',
-	untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
+			untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
 		var properties:NSDictionary = NSDictionary.fromDynamic({
 			"kCGImagePropertyASTCFlipVertically": astcProperties.filpVertically != null ? astcProperties.filpVertically : false,
 			"kCGImagePropertyASTCBlockSize": astcProperties.blockSize != null ? astcProperties.blockSize : 0x88,
@@ -172,26 +172,41 @@ class AppleASTCEncoder {
 }
 
 /**
- * ASTC解码参数
+ * ##### CN
+ * ASTC编码属性，它可以控制基本参数，如垂直翻转、透明预乘和压缩纹理的压缩质量。
+ * ##### EN
+ * ASTC Encode Properties, It can control basic parameters such as vertical flipping, transparent premultiplication, and compression quality of compressed textures.
  */
 typedef ASTCEncodeProperties = {
 	/**
-	 * 是否发生垂直翻转处理，默认为`false`
+	 * ###### CN
+	 * 是否发生垂直翻转，默认为`false`
+	 * ###### EN
+	 * Whether vertical flipping occurs, default to `false`
 	 */
 	var ?filpVertically:Bool;
 
 	/**
+	 * ##### CN
 	 * 提供编码的比率，当不提供时，默认值为`ASTCBlockSize.BLOCK_8X8`
+	 * ##### EN
+	 * The ratio for providing encoding, when not provided, defaults to ` ASTCBlockSize BLOCK_ 8X8`
 	 */
 	var ?blockSize:ASTCBlockSize;
 
 	/**
+	 * ##### CN
 	 * 压缩质量，有效值为`0`-`1`，默认为`0`
+	 * ##### EN
+	 * Compression quality, valid values are `0`-`1`, default is `0`
 	 */
 	var ?quality:Float;
 
 	/**
+	 * ##### CN
 	 * 是否开启透明预乘，默认为`true`
+	 * ##### EN
+	 * Whether to enable transparent pre multiplication, default to `true`
 	 */
 	var ?alphaPermultiplied:Bool;
 }
