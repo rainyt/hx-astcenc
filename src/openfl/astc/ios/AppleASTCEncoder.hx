@@ -53,7 +53,7 @@ class AppleASTCEncoder {
 			astcProperties = {};
 
 		var imageBuffer:ImageBuffer = image.buffer;
-		astcProperties.alphaPermultiplied = imageBuffer.premultiplied;
+		astcProperties.alphaPermultiplied = !imageBuffer.premultiplied;
 
 		var bitmapInfo:UInt32 = 0;
 		var pixelFormat:PixelFormat = imageBuffer.format;
