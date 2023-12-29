@@ -1,5 +1,6 @@
 package openfl.display;
 
+import openfl.astc.ios.AppleASTCEncoder;
 import openfl.astc.ios.AppleASTCEncoder.ASTCEncodeProperties;
 import openfl.astc.ASTCLoader;
 import openfl.utils.Future;
@@ -50,6 +51,16 @@ class ASTCBitmapData extends BitmapData {
 	public static function isSupportASTCConfig():Bool {
 		var ext:Dynamic = GL.getExtension(#if (lime_opengl || lime_opengles) "KHR_texture_compression_astc_ldr" #else "WEBGL_compressed_texture_astc" #end);
 		return ext != null;
+	}
+
+	/**
+	 * 通过`BitmapData`创建`ASTCBitmapData`压缩纹理
+	 * @param bitmapData 
+	 * @return ASTCBitmapData
+	 */
+	public static function fromBitmapData(bitmapData:BitmapData):ASTCBitmapData {
+		var bytes = AppleASTCEncoder.encodeASTCFromBitmapData(bitmapData);
+		return fromBytes(bytes);
 	}
 
 	/**
