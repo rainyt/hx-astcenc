@@ -107,12 +107,12 @@ class AppleASTCEncoder {
 			astcProperties = {};
 
 		var uiimage = UIImage.imageWithData(bytes);
-		untyped __cpp__('CGImageRef source = {0}', uiimage.CGImage());
+		var source:CGImageRef = uiimage.CGImage();
 
 		if (astcProperties.alphaPermultiplied == null)
 			astcProperties.alphaPermultiplied = true;
 
-		var astcBytes:Bytes = encodeASTCFromCGImage(untyped __cpp__("source"), astcProperties);
+		var astcBytes:Bytes = encodeASTCFromCGImage(source, astcProperties);
 		return astcBytes;
 	}
 
@@ -122,7 +122,7 @@ class AppleASTCEncoder {
 	 * @param astcProperties
 	 * @return Null<Bytes>
 	 */
-	public static function encodeASTCFromCGImage(source:cpp.Pointer<CGImage>, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
+	 public static function encodeASTCFromCGImage(source:CGImageRef, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
 		if (source == null)
 			return null;
 
@@ -181,6 +181,11 @@ class AppleASTCEncoder {
 		return astcBytes;
 	}
 }
+
+@:structAccess
+@:native("CGImageRef")
+@:include("UIKit/UIKit.h")
+extern class CGImageRef {}
 
 /**
  * ##### CN
