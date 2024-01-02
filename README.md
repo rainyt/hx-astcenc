@@ -56,4 +56,15 @@ ASTCBitmapData.loadFromFile("assets/4x4.astc").onComplete(data -> {
 }).onError(err -> {
     trace("Load fail", err);
 });
+// Create from a BitmapData
+ASTCBitmapData.fromBitmapData(bitmapData);
+// Create from local path .png format, But it only IOS support.
+ASTCBitmapData.loadFromPngFile("assets/4x4.png");
+```
+
+##### Display ASTCBitmapData
+```haxe
+var bitmap = new Bitmap();
+bitmap.bitmapData = ASTCBitmapData.fromBytes(bytes);
+this.addChild(bitmap);
 ```
