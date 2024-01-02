@@ -76,8 +76,9 @@ class AppleASTCEncoder {
         CGColorSpaceRelease(colorSpace);
         CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext);
         CGContextRelease(bitmapContext);", nativeImageData, image.width, image.height, bitmapInfo);
-
-		return encodeASTCFromCGImage(untyped __cpp__("cgImage"), astcProperties);
+		var bytes = encodeASTCFromCGImage(untyped __cpp__("cgImage"), astcProperties);
+		untyped __cpp__("CGImageRelease(cgImage)");
+		return bytes;
 	}
 	#end
 
@@ -122,14 +123,17 @@ class AppleASTCEncoder {
 	 * @param astcProperties
 	 * @return Null<Bytes>
 	 */
-	 public static function encodeASTCFromCGImage(source:CGImageRef, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
+	public static function encodeASTCFromCGImage(source:CGImageRef, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
 		if (source == null)
 			return null;
 
 		if (astcProperties == null)
 			astcProperties = {};
 
+		var autoRelease = false;
+
 		if (astcProperties.alphaPermultiplied == true) {
+			autoRelease = true;
 			untyped __cpp__('
 			// 获取原始CGImage的其他参数
 			size_t width = CGImageGetWidth({0});
@@ -143,10 +147,10 @@ class AppleASTCEncoder {
 			bool shouldInterpolate = CGImageGetShouldInterpolate({0});
 			CGColorRenderingIntent intent = CGImageGetRenderingIntent({0});
 			// 创建一个新的CGImage，指定新的alpha信息
-			CGImageRef oldImage = {0};
+			// CGImageRef oldImage = {0};
 			CGImageRef image = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | (bitmapInfo & kCGBitmapByteOrderMask), dataProvider, CGImageGetDecode({0}), shouldInterpolate, intent);
 			{0} = image;
-			CGImageRelease(oldImage);', source);
+			// CGImageRelease(oldImage);', source);
 		}
 
 		var data:NSMutableData = NSMutableData.data();
@@ -162,22 +166,23 @@ class AppleASTCEncoder {
         CGImageDestinationAddImage(destination, {0}, (CFDictionaryRef){1});
 		if(CGImageDestinationFinalize(destination)){
 			{2} = true;
-		};
-		CFRelease(destination);', source, properties, isFinalize);
+		};', source, properties, isFinalize);
 		if (!isFinalize) {
-			trace("isFinalize = false");
 			return null;
 		}
 		var astcNSData:NSData = untyped data;
 		var astcBytes = astcNSData.toBytes();
 
-		untyped __cpp__('
-		// Freed all
-		CGColorSpaceRef colorSpace = CGImageGetColorSpace({0});
-		CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
-		CGColorSpaceRelease(colorSpace);
-		CGDataProviderRelease(dataProvider);
-		CGImageRelease({0})', source);
+		if (autoRelease) {
+			untyped __cpp__('
+			// Freed all
+			CGColorSpaceRef colorSpace = CGImageGetColorSpace({0});
+			CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
+			CGColorSpaceRelease(colorSpace);
+			CGDataProviderRelease(dataProvider);
+			CGImageRelease({0})', source);
+		}
+		// untyped __cpp__('CFRelease(destination)');
 		return astcBytes;
 	}
 }
