@@ -70,14 +70,16 @@ class AppleASTCEncoder {
 
 		var nativeImageData:Pointer<cpp.UInt8> = NativeArray.address(imageBuffer.data.toBytes().getData(), 0);
 
+		var cgImage:CGImageRef = null;
 		untyped __cpp__("
         CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
         CGContextRef bitmapContext = CGBitmapContextCreate({0}, {1}, {2}, 8, 4 * {1}, colorSpace, {3});
         CGColorSpaceRelease(colorSpace);
-        CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext);
-        CGContextRelease(bitmapContext);", nativeImageData, image.width, image.height, bitmapInfo);
+        {4} = CGBitmapContextCreateImage(bitmapContext);
+        CGContextRelease(bitmapContext);", nativeImageData, image.width, image.height, bitmapInfo, cgImage);
 		var bytes = encodeASTCFromCGImage(untyped __cpp__("cgImage"), astcProperties);
-		untyped __cpp__("CGImageRelease(cgImage)");
+		// untyped __cpp__("CGImageRelease(cgImage)");
+		cgRelease(cgImage);
 		return bytes;
 	}
 	#end
@@ -174,16 +176,20 @@ class AppleASTCEncoder {
 		var astcBytes = astcNSData.toBytes();
 
 		if (autoRelease) {
-			untyped __cpp__('
-			// Freed all
-			CGColorSpaceRef colorSpace = CGImageGetColorSpace({0});
-			CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
-			CGColorSpaceRelease(colorSpace);
-			CGDataProviderRelease(dataProvider);
-			CGImageRelease({0})', source);
+			cgRelease(source);
 		}
 		// untyped __cpp__('CFRelease(destination)');
 		return astcBytes;
+	}
+
+	private static function cgRelease(source:CGImageRef):Void {
+		untyped __cpp__('
+		// Freed all
+		CGColorSpaceRef colorSpace = CGImageGetColorSpace({0});
+		CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
+		CGColorSpaceRelease(colorSpace);
+		CGDataProviderRelease(dataProvider);
+		CGImageRelease({0})', source);
 	}
 }
 
