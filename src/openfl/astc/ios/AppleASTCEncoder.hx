@@ -21,6 +21,8 @@ import lime.graphics.ImageBuffer;
 import lime.graphics.Image;
 import lime.graphics.PixelFormat;
 #end
+import ios.foundation.NSNumber;
+import haxe.io.BytesData;
 
 /**
  * Apple ASTC Texture encoder.
@@ -68,8 +70,10 @@ class AppleASTCEncoder {
 			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little");
 		}
 
-		var nativeImageData:Pointer<cpp.UInt8> = NativeArray.address(imageBuffer.data.toBytes().getData(), 0);
+		var imageBufferBytes:Bytes = imageBuffer.data.toBytes();
+		var imageBufferByteData:BytesData = imageBufferBytes.getData();
 
+		var nativeImageData:Pointer<cpp.UInt8> = NativeArray.address(imageBufferByteData, 0);
 		var cgImage:CGImageRef = null;
 		untyped __cpp__("
         CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
@@ -77,7 +81,7 @@ class AppleASTCEncoder {
         CGColorSpaceRelease(colorSpace);
         {4} = CGBitmapContextCreateImage(bitmapContext);
         CGContextRelease(bitmapContext);", nativeImageData, image.width, image.height, bitmapInfo, cgImage);
-		var bytes = encodeASTCFromCGImage(untyped __cpp__("cgImage"), astcProperties);
+		var bytes = encodeASTCFromCGImage(cgImage);
 		// untyped __cpp__("CGImageRelease(cgImage)");
 		cgRelease(cgImage);
 		return bytes;
@@ -157,13 +161,17 @@ class AppleASTCEncoder {
 
 		var data:NSMutableData = NSMutableData.data();
 		untyped __cpp__('CGImageDestinationRef destination = {0}',
-			untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
-		var properties:NSDictionary = NSDictionary.fromDynamic({
-			"kCGImagePropertyASTCFlipVertically": astcProperties.filpVertically != null ? astcProperties.filpVertically : false,
-			"kCGImagePropertyASTCBlockSize": astcProperties.blockSize != null ? astcProperties.blockSize : 0x88,
-			"kCGImageDestinationLossyCompressionQuality": astcProperties.quality != null ? astcProperties.quality : 0
-		});
-		var isFinalize = false;
+		untyped __cpp__('CGImageDestinationCreateWithData((CFMutableDataRef){0}, (CFStringRef)@"org.khronos.astc", 1, nil)', data));
+
+		var flipVertically:Bool = astcProperties.filpVertically != null ? astcProperties.filpVertically : false;
+		var blockSize:NSNumber = astcProperties.blockSize != null ? NSNumber.numberWithInt(astcProperties.blockSize) : NSNumber.numberWithInt(0x88);
+		var quality:NSNumber = astcProperties.quality != null ? NSNumber.numberWithFloat(astcProperties.quality) : NSNumber.numberWithFloat(0);
+		var properties:NSDictionary = untyped __cpp__("@{
+			@\"kCGImagePropertyASTCFlipVertically\": {0},
+			@\"kCGImagePropertyASTCBlockSize\": {1},
+			@\"kCGImageDestinationLossyCompressionQuality\": {2}
+		}", flipVertically ? untyped __cpp__("@YES") : untyped __cpp__("@NO"), blockSize, quality);
+		var isFinalize:Bool = false;
 		untyped __cpp__('
         CGImageDestinationAddImage(destination, {0}, (CFDictionaryRef){1});
 		if(CGImageDestinationFinalize(destination)){
@@ -172,31 +180,35 @@ class AppleASTCEncoder {
 		if (!isFinalize) {
 			return null;
 		}
-		var astcNSData:NSData = untyped data;
-		var astcBytes = astcNSData.toBytes();
 
+		untyped __cpp__('CFRelease(destination)');
 		if (autoRelease) {
 			cgRelease(source);
 		}
-		// untyped __cpp__('CFRelease(destination)');
-		return astcBytes;
+
+		var astcNSData:NSData = cast data;
+
+		return astcNSData.toBytes();
 	}
 
 	private static function cgRelease(source:CGImageRef):Void {
 		untyped __cpp__('
 		// Freed all
+		CGImageRelease({0});
 		CGColorSpaceRef colorSpace = CGImageGetColorSpace({0});
 		CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
 		CGColorSpaceRelease(colorSpace);
-		CGDataProviderRelease(dataProvider);
-		CGImageRelease({0})', source);
+		CGDataProviderRelease(dataProvider);', source);
 	}
 }
 
-@:structAccess
+typedef CGImageRef = cpp.Pointer<CGImage>
+
+/*@:structAccess
 @:native("CGImageRef")
 @:include("UIKit/UIKit.h")
-extern class CGImageRef {}
+extern class CGImageRef {}*/
+
 
 /**
  * ##### CN
