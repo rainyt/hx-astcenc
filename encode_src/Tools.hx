@@ -13,12 +13,17 @@ using StringTools;
 class Tools {
 	public static var astcencPath:String = null;
 
+	public static var cpu:String = "";
+
 	static function main() {
 		var args = Sys.args();
 		var path = args.pop();
 		var current = Sys.getCwd();
 		var isWindow = Sys.systemName() == "Windows";
-		astcencPath = Path.join([current, "./tools/astcenc" + (isWindow ? ".exe" : "")]);
+		if (isWindow) {
+			cpu = testCPU(current);
+		}
+		astcencPath = Path.join([current, "./tools/astcenc-" + (isWindow ? cpu + ".exe" : "")]);
 		// 是否使用json配置
 		if (args[0].indexOf(".json") != -1) {
 			Sys.setCwd(path);
@@ -41,6 +46,21 @@ class Tools {
 		} else {
 			trace("Out file size:" + Math.floor(bytes.length / 1024) + "kb");
 		}
+	}
+
+	/**
+	 * Windows系统需要先检测CPU的兼容性
+	 * @param current 
+	 * @return String
+	 */
+	private static function testCPU(current:String):String {
+		var code = Sys.command(Path.join([current, "./tools/astcenc-avx2.exe"]));
+		if (code == 0)
+			return "avx2";
+		var code = Sys.command(Path.join([current, "./tools/astcenc-sse4.1.exe"]));
+		if (code == 0)
+			return "sse4.1";
+		return "sse2";
 	}
 
 	/**
