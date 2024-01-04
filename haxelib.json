@@ -10,7 +10,8 @@
   "version": "0.0.1",
   "releasenote": "",
   "contributors": [
-    "rainy"
+    "rainyt",
+    "barisyild"
   ],
   "main": "Main",
   "classPath": "src",

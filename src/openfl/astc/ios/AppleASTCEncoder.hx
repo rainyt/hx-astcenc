@@ -204,12 +204,6 @@ class AppleASTCEncoder {
 
 typedef CGImageRef = cpp.Pointer<CGImage>
 
-/*@:structAccess
-@:native("CGImageRef")
-@:include("UIKit/UIKit.h")
-extern class CGImageRef {}*/
-
-
 /**
  * ##### CN
  * ASTC编码属性，它可以控制基本参数，如垂直翻转、透明预乘和压缩纹理的压缩质量。
