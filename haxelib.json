@@ -7,7 +7,7 @@
     "astc"
   ],
   "description": "ASTC Encoder and OpenFL ASTC Texture BitmapData.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "releasenote": "",
   "contributors": [
     "rainyt",
