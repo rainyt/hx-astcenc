@@ -57,7 +57,9 @@ class ASTCEncode {
 		}
 		var code = Sys.command(Tools.astcencPath, args);
 		if (code != 0) {
-			throw [Tools.astcencPath].concat(args).join(" ");
+			var msg = [Tools.astcencPath].concat(args).join(" ");
+			HashCache.getInstance().error(path + '(${msg})');
+			throw msg;
 		}
 		if (zlib) {
 			try {
