@@ -23,7 +23,7 @@ class Tools {
 		if (isWindow) {
 			cpu = testCPU(current);
 		}
-		astcencPath = Path.join([current, "./tools/astcenc-" + (isWindow ? cpu + ".exe" : "")]);
+		astcencPath = Path.join([current, "./tools/astcenc" + (isWindow ? "-" + cpu + ".exe" : "")]);
 		// 是否使用json配置
 		if (args[0].indexOf(".json") != -1) {
 			Sys.setCwd(path);

@@ -55,7 +55,10 @@ class ASTCEncode {
 		if (alphaPremultiply) {
 			args.push("-pp-premultiply");
 		}
-		Sys.command(Tools.astcencPath, args);
+		var code = Sys.command(Tools.astcencPath, args);
+		if (code != 0) {
+			throw [Tools.astcencPath].concat(args).join(" ");
+		}
 		if (zlib) {
 			try {
 				bytes = File.getBytes(saveTo);
