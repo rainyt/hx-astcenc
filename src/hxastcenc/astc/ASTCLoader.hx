@@ -1,4 +1,4 @@
-package openfl.astc;
+package hxastcenc.astc;
 
 import haxe.Exception;
 import openfl.events.IOErrorEvent;

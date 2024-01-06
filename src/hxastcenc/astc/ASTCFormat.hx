@@ -1,4 +1,4 @@
-package openfl.astc;
+package hxastcenc.astc;
 
 /**
  * All enumerations supported by ASTC texture

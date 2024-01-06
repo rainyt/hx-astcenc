@@ -1,4 +1,4 @@
-package openfl.astc.ios;
+package hxastcenc.astc.ios;
 
 /**
  * ASTC块比率

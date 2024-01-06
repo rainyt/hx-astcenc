@@ -1,8 +1,8 @@
 package openfl.display;
 
-import openfl.astc.ios.AppleASTCEncoder;
-import openfl.astc.ios.AppleASTCEncoder.ASTCEncodeProperties;
-import openfl.astc.ASTCLoader;
+import hxastcenc.astc.ios.AppleASTCEncoder;
+import hxastcenc.astc.ios.AppleASTCEncoder.ASTCEncodeProperties;
+import hxastcenc.astc.ASTCLoader;
 import openfl.utils.Future;
 import openfl.events.IOErrorEvent;
 import openfl.net.URLLoaderDataFormat;
@@ -13,7 +13,7 @@ import openfl.display3D.textures.TextureBase;
 import openfl.display3D.textures.RectangleTexture;
 import openfl.display3D.Context3D;
 import lime.utils.UInt8Array;
-import openfl.astc.ASTCFormat;
+import hxastcenc.astc.ASTCFormat;
 import openfl.utils.ByteArray;
 import lime.graphics.opengl.GL;
 import haxe.io.Bytes;
