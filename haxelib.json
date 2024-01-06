@@ -15,8 +15,5 @@
   ],
   "main": "Main",
   "classPath": "src",
-  "dependencies": {
-    "openfl": "",
-    "lime": ""
-  }
+  "dependencies": {}
 }
