@@ -1,19 +1,15 @@
 package openfl.display;
 
-import openfl.astc.ios.AppleASTCEncoder;
-import openfl.astc.ios.AppleASTCEncoder.ASTCEncodeProperties;
+#if hx_ios_uikit
+import hxastcenc.astc.ios.AppleASTCEncoder;
+#end
 import openfl.astc.ASTCLoader;
 import openfl.utils.Future;
-import openfl.events.IOErrorEvent;
-import openfl.net.URLLoaderDataFormat;
-import openfl.events.Event;
-import openfl.net.URLLoader;
-import openfl.net.URLRequest;
 import openfl.display3D.textures.TextureBase;
 import openfl.display3D.textures.RectangleTexture;
 import openfl.display3D.Context3D;
 import lime.utils.UInt8Array;
-import openfl.astc.ASTCFormat;
+import hxastcenc.astc.ASTCFormat;
 import openfl.utils.ByteArray;
 import lime.graphics.opengl.GL;
 import haxe.io.Bytes;
@@ -54,13 +50,20 @@ class ASTCBitmapData extends BitmapData {
 	}
 
 	/**
+	 * ##### CN
 	 * 通过`BitmapData`创建`ASTCBitmapData`压缩纹理
+	 * ##### EN
+	 * Create a new BitmapData from BitmapData (a openfl.display.BitmapData).
 	 * @param bitmapData 
 	 * @return ASTCBitmapData
 	 */
 	public static function fromBitmapData(bitmapData:BitmapData):ASTCBitmapData {
+		#if hx_ios_uikit
 		var bytes = AppleASTCEncoder.encodeASTCFromBitmapData(bitmapData);
 		return fromBytes(bytes);
+		#else
+		return null;
+		#end
 	}
 
 	/**
@@ -150,7 +153,7 @@ class ASTCBitmapData extends BitmapData {
 	 * @return Future<ASTCBitmapData>
 	 */
 	public static function loadFromPngFile(url:String, ?astcProperties:ASTCEncodeProperties):ASTCBitmapData {
-		var bytes = openfl.astc.ios.AppleASTCEncoder.encodeASTCFromFile(url, astcProperties);
+		var bytes = hxastcenc.astc.ios.AppleASTCEncoder.encodeASTCFromFile(url, astcProperties);
 		if (bytes == null) {
 			trace("Bytes is null.");
 			return null;

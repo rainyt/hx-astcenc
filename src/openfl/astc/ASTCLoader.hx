@@ -6,9 +6,11 @@ import openfl.events.Event;
 import openfl.net.URLLoaderDataFormat;
 import openfl.net.URLLoader;
 import openfl.net.URLRequest;
-import lime.app.Future;
 import openfl.display.ASTCBitmapData;
 
+/**
+ * OpenFl Target loader.
+ */
 class ASTCLoader extends openfl.utils.Future<ASTCBitmapData> {
 	public function new(url:String) {
 		super();

@@ -1,4 +1,4 @@
-package openfl.astc.ios;
+package hxastcenc.astc.ios;
 
 #if hx_ios_uikit
 import haxe.io.Path;
@@ -9,17 +9,19 @@ import ios.foundation.NSMutableData;
 import sys.io.File;
 import ios.uikit.UIImage;
 import ios.objc.CGImage;
-import openfl.astc.ios.ASTCBlockSize;
+import cpp.UInt32;
+import cpp.Pointer;
+import cpp.NativeArray;
 #if openfl
 import openfl.display.BitmapData;
 #end
 #if lime
-import cpp.UInt32;
-import cpp.Pointer;
-import cpp.NativeArray;
-import lime.graphics.ImageBuffer;
-import lime.graphics.Image;
-import lime.graphics.PixelFormat;
+import lime.graphics.ImageBuffer as LimeImageBuffer;
+import lime.graphics.Image as LimeImage;
+import lime.graphics.PixelFormat as LimePixelFormat;
+#end
+#if vision
+import vision.ds.Image as VisionImage;
 #end
 import ios.foundation.NSNumber;
 import haxe.io.BytesData;
@@ -43,50 +45,86 @@ class AppleASTCEncoder {
 		if (bitmapData == null || bitmapData.image == null)
 			return null;
 
-		return encodeASTCFromImage(bitmapData.image, astcProperties);
+		return encodeASTCFromLimeImage(bitmapData.image, astcProperties);
 	}
 	#end
 
 	#if lime
 	/**
-	 * Create a `Bytes` from `lime.graphics.Image`, Will do it conver to ASTC Texture bytes.
+	 * Create a `Bytes` from `lime.graphics.Image`, Will do it convert to ASTC Texture bytes.
 	 * @param image
 	 * @param astcProperties ASTC Properties
 	 * @return Null<Bytes>
 	 */
-	public static function encodeASTCFromImage(image:Image, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
+	public static function encodeASTCFromLimeImage(image:LimeImage, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
 		if (astcProperties == null)
 			astcProperties = {};
 
-		var imageBuffer:ImageBuffer = image.buffer;
+		var imageBuffer:LimeImageBuffer = image.buffer;
+		var imagePixelFormat:ImagePixelFormat = null;
 
 		var bitmapInfo:UInt32 = 0;
-		var pixelFormat:PixelFormat = imageBuffer.format;
-		if (pixelFormat == PixelFormat.ARGB32) {
+		var pixelFormat:LimePixelFormat = imageBuffer.format;
+		if (pixelFormat == LimePixelFormat.ARGB32) {
+			imagePixelFormat = ImagePixelFormat.ARGB32;
+		} else if (pixelFormat == LimePixelFormat.RGBA32) {
+			imagePixelFormat = ImagePixelFormat.RGBA32;
+		} else if (pixelFormat == LimePixelFormat.BGRA32) {
+			imagePixelFormat = ImagePixelFormat.BGRA32;
+		}
+
+		return encodeASTCFromPixelData(image.data.toBytes().getData(), imageBuffer.width, imageBuffer.height, imagePixelFormat, astcProperties);
+	}
+	#end
+
+	#if vision
+	/**
+	 * Create a `Bytes` from `vision.ds.Image`, Will do it convert to ASTC Texture bytes.
+	 * @param image VisionImage
+	 * @param astcProperties ASTC Properties
+	 * @return Null<Bytes>
+	 */
+	public static function encodeASTCFromVisionImage(image:VisionImage, ?astcProperties:ASTCEncodeProperties):Null<Bytes>
+	{
+		if (astcProperties == null)
+			astcProperties = {};
+
+		return encodeASTCFromPixelData(image.toBytes().getData(), image.width, image.height, ImagePixelFormat.ARGB32, astcProperties);
+	}
+	#end
+
+	/**
+	 * Create a pixel data from `Bytes`, Will do it convert to ASTC Texture bytes.
+	 * @param data Pixel Data
+	 * @param width Width
+	 * @param height Height
+	 * @param format Pixel Format
+	 * @param astcProperties ASTC Properties
+	 * @return Null<Bytes>
+	 */
+	public static function encodeASTCFromPixelData(data:BytesData, width:Int, height:Int, format:ImagePixelFormat, ?astcProperties:ASTCEncodeProperties):Null<Bytes> {
+		var bitmapInfo:UInt32 = 0;
+		if (format == ImagePixelFormat.ARGB32) {
 			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Big");
-		} else if (pixelFormat == PixelFormat.RGBA32) {
+		} else if (format == ImagePixelFormat.RGBA32) {
 			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big");
-		} else if (pixelFormat == PixelFormat.BGRA32) {
+		} else if (format == ImagePixelFormat.BGRA32) {
 			bitmapInfo = untyped __cpp__("kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little");
 		}
 
-		var imageBufferBytes:Bytes = imageBuffer.data.toBytes();
-		var imageBufferByteData:BytesData = imageBufferBytes.getData();
-
-		var nativeImageData:Pointer<cpp.UInt8> = NativeArray.address(imageBufferByteData, 0);
+		var nativeImageData:Pointer<cpp.UInt8> = NativeArray.address(data, 0);
 		var cgImage:CGImageRef = null;
 		untyped __cpp__("
         CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
         CGContextRef bitmapContext = CGBitmapContextCreate({0}, {1}, {2}, 8, 4 * {1}, colorSpace, {3});
         CGColorSpaceRelease(colorSpace);
         {4} = CGBitmapContextCreateImage(bitmapContext);
-        CGContextRelease(bitmapContext);", nativeImageData, image.width, image.height, bitmapInfo, cgImage);
-		var bytes = encodeASTCFromCGImage(cgImage);
+        CGContextRelease(bitmapContext);", nativeImageData, width, height, bitmapInfo, cgImage);
+		var bytes = encodeASTCFromCGImage(cgImage, astcProperties);
 		// untyped __cpp__("CGImageRelease(cgImage)");
 		cgRelease(cgImage);
 		return bytes;
 	}
-	#end
 
 	/**
 	 * Provide the 'PNG' image path through a local file and convert it to an ASTC texture
