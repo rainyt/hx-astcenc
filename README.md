@@ -68,3 +68,12 @@ var bitmap = new Bitmap();
 bitmap.bitmapData = ASTCBitmapData.fromBytes(bytes);
 this.addChild(bitmap);
 ```
+
+# IOS Runtime ASTC Texture encode support
+```haxe
+# You need to support IOS runtime operation through hx ios uikit
+haxelib install hx-ios-uikit
+```
+Support API:
+- ASTCBitmapData.fromBitmapData(bitmapData);
+- ASTCBitmapData.loadFromPngFile("assets/4x4.png");
