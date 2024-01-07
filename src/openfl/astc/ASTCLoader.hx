@@ -1,4 +1,4 @@
-package hxastcenc.astc;
+package openfl.astc;
 
 import haxe.Exception;
 import openfl.events.IOErrorEvent;
@@ -9,6 +9,9 @@ import openfl.net.URLRequest;
 import lime.app.Future;
 import openfl.display.ASTCBitmapData;
 
+/**
+ * OpenFl Target loader.
+ */
 class ASTCLoader extends openfl.utils.Future<ASTCBitmapData> {
 	public function new(url:String) {
 		super();
