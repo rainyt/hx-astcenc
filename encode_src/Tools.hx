@@ -68,10 +68,15 @@ class Tools {
 	 * @param json 
 	 */
 	public static function runJson(list:Array<ASTCJsonConfig>):Void {
-		for (json in list) {
-			converToAstc(json.path, json.output, json);
+		try {
+			for (json in list) {
+				converToAstc(json.path, json.output, json);
+			}
+			HashCache.getInstance().save();
+			trace("convered");
+		} catch (e:Exception) {
+			trace(e.message, e.stack);
 		}
-		HashCache.getInstance().save();
 	}
 
 	/**
@@ -88,11 +93,27 @@ class Tools {
 				var outFilePath = Path.join([topath, file]);
 				converToAstc(filePath, outFilePath, json);
 			}
+			// 删除不存在的png文件，则删除astc文件
+			if (FileSystem.exists(topath)) {
+				var astclist = FileSystem.readDirectory(topath);
+				for (file in astclist) {
+					if (!list.contains(StringTools.replace(file, ".astc", ".png"))) {
+						// 删除
+						var filePath = Path.join([topath, file]);
+						if (!FileSystem.isDirectory(filePath)) {
+							trace("[D]", filePath);
+							if (!FileSystem.isDirectory(filePath)) {
+								FileSystem.deleteFile(filePath);
+							}
+						}
+					}
+				}
+			}
 		} else if (path.endsWith(".png")) {
 			topath = topath.replace(".png", ".astc");
-			trace("converTo", path, topath);
 			if (HashCache.getInstance().isChange(path) || !FileSystem.exists(topath)) {
 				// 开始转换为astc格式
+				trace("[A]", path, topath);
 				var dir = Path.directory(topath);
 				if (!FileSystem.exists(dir)) {
 					FileSystem.createDirectory(dir);
@@ -110,7 +131,7 @@ class Tools {
 					}
 				}
 			} else {
-				trace("Skip", path);
+				// trace("Skip", path);
 			}
 		}
 	}
