@@ -232,11 +232,7 @@ class AppleASTCEncoder {
 	private static function cgRelease(source:CGImageRef):Void {
 		untyped __cpp__('
 		// Freed all
-		CGImageRelease({0});
-		CGColorSpaceRef colorSpace = CGImageGetColorSpace({0});
-		CGDataProviderRef dataProvider = CGImageGetDataProvider({0});
-		CGColorSpaceRelease(colorSpace);
-		CGDataProviderRelease(dataProvider);', source);
+		CGImageRelease({0});', source);
 	}
 }
 
