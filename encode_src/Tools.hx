@@ -111,7 +111,7 @@ class Tools {
 			}
 		} else if (path.endsWith(".png")) {
 			topath = topath.replace(".png", ".astc");
-			if (HashCache.getInstance().isChange(path) || !FileSystem.exists(topath)) {
+			if (HashCache.getInstance().isChange(path, topath) || !FileSystem.exists(topath)) {
 				// 开始转换为astc格式
 				trace("[A]", path, topath);
 				var dir = Path.directory(topath);
