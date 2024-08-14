@@ -1,5 +1,6 @@
 package utils;
 
+import haxe.DynamicAccess;
 import sys.io.Process;
 import haxe.crypto.Md5;
 import haxe.Json;
@@ -21,7 +22,9 @@ class HashCache {
 		return __hashCache;
 	}
 
-	public var map:Dynamic<String> = {};
+	public var map:DynamicAccess<String> = {};
+
+	public var md5values:DynamicAccess<String> = {};
 
 	private var __error:Array<String> = [];
 
@@ -46,7 +49,7 @@ class HashCache {
 			if (date != data) {
 				// 如果不相等，那么可能是文件被修改了，需要重新生成，但是仍然希望使用md5校验一下，提高性能
 				#if mac
-				return isMd5Change([file, topath]);
+				return isMd5Change(file);
 				#else
 				return true;
 				#end
@@ -62,26 +65,18 @@ class HashCache {
 	 * @param files 
 	 * @return Array<String>
 	 */
-	public function isMd5Change(files:Array<String>):Bool {
-		for (file in files) {
-			// 如果是文件夹或者不存在时，则立即返回已变更
-			if (!FileSystem.exists(file) || FileSystem.isDirectory(file)) {
-				return false;
-			}
+	public function isMd5Change(file:String):Bool {
+		// 如果是文件夹或者不存在时，则立即返回已变更
+		if (!FileSystem.exists(file) || FileSystem.isDirectory(file)) {
+			return false;
 		}
-		var cmd = new Process('md5', files);
+		var cmd = new Process('md5', [file]);
 		var value = cmd.stdout.readAll().toString();
-		var md5s = value.split("\n");
-		var all = [];
-		for (line in md5s) {
-			var value = line.split(" ");
-			var md5 = value[value.length - 1];
-			if (!all.contains(md5)) {
-				all.push(md5);
-			}
-		}
-		cmd.close();
-		return all.length > 1;
+		var md5s = value.split(" ");
+		var md5 = md5s[value.length - 1];
+		var oldMd5 = md5values[file];
+		md5values[file] = md5;
+		return oldMd5 != md5;
 	}
 
 	public function error(file:String):Void {
@@ -97,7 +92,8 @@ class HashCache {
 	public function save() {
 		File.saveContent(path, Json.stringify({
 			cache: map,
-			error: __error
+			error: __error,
+			md5: md5values,
 		}, null, "    "));
 	}
 }
