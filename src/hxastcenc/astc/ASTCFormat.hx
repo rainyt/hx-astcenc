@@ -102,4 +102,41 @@ enum abstract ASTCFormat(UInt) to UInt from UInt {
 		}
 		return 0;
 	}
+
+	/**
+	 * 计算GPU纹理的内存
+	 */
+	public static function getGPUMemory(format:ASTCFormat, width:Int, height:Int):Int {
+		switch format {
+			case COMPRESSED_RGBA_ASTC_4x4_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR:
+				return Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 16;
+			case COMPRESSED_RGBA_ASTC_5x4_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR:
+				return Math.floor((width + 4) / 4) * Math.floor((height + 3) / 4) * 16;
+			case COMPRESSED_RGBA_ASTC_5x5_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR:
+				return Math.floor((width + 4) / 5) * Math.floor((height + 4) / 5) * 16;
+			case COMPRESSED_RGBA_ASTC_6x5_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR:
+				return Math.floor((width + 5) / 6) * Math.floor((height + 4) / 5) * 16;
+			case COMPRESSED_RGBA_ASTC_6x6_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR:
+				return Math.floor((width + 5) / 6) * Math.floor((height + 5) / 6) * 16;
+			case COMPRESSED_RGBA_ASTC_8x5_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR:
+				return Math.floor((width + 7) / 8) * Math.floor((height + 4) / 5) * 16;
+			case COMPRESSED_RGBA_ASTC_8x6_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR:
+				return Math.floor((width + 7) / 8) * Math.floor((height + 5) / 6) * 16;
+			case COMPRESSED_RGBA_ASTC_8x8_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR:
+				return Math.floor((width + 7) / 8) * Math.floor((height + 7) / 8) * 16;
+			case COMPRESSED_RGBA_ASTC_10x5_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR:
+				return Math.floor((width + 9) / 10) * Math.floor((height + 4) / 5) * 16;
+			case COMPRESSED_RGBA_ASTC_10x6_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR:
+				return Math.floor((width + 9) / 10) * Math.floor((height + 5) / 6) * 16;
+			case COMPRESSED_RGBA_ASTC_10x8_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR:
+				return Math.floor((width + 9) / 10) * Math.floor((height + 7) / 8) * 16;
+			case COMPRESSED_RGBA_ASTC_10x10_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR:
+				return Math.floor((width + 9) / 10) * Math.floor((height + 9) / 10) * 16;
+			case COMPRESSED_RGBA_ASTC_12x10_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR:
+				return Math.floor((width + 11) / 12) * Math.floor((height + 8) / 8) * 16;
+			case COMPRESSED_RGBA_ASTC_12x12_KHR, COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:
+				return Math.floor((width + 11) / 12) * Math.floor((height + 11) / 12) * 16;
+		}
+		return 0;
+	}
 }

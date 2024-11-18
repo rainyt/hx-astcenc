@@ -113,7 +113,7 @@ class ASTCBitmapData extends BitmapData {
 		GL.compressedTexImage2DWEBGL(GL.TEXTURE_2D, 0, rectangleTexture.__format, rectangleTexture.__width, rectangleTexture.__height, 0, uint8Array);
 		#end
 		GL.bindTexture(GL.TEXTURE_2D, null);
-		return fromTexture(rectangleTexture);
+		return ASTCBitmapData.fromTexture(rectangleTexture);
 	}
 
 	/**
