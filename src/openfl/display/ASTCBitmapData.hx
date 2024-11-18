@@ -113,7 +113,7 @@ class ASTCBitmapData extends BitmapData {
 		GL.compressedTexImage2DWEBGL(GL.TEXTURE_2D, 0, rectangleTexture.__format, rectangleTexture.__width, rectangleTexture.__height, 0, uint8Array);
 		#end
 		GL.bindTexture(GL.TEXTURE_2D, null);
-		return ASTCBitmapData.fromTexture(rectangleTexture);
+		return fromTexture(rectangleTexture);
 	}
 
 	/**
@@ -161,4 +161,17 @@ class ASTCBitmapData extends BitmapData {
 		return openfl.display.ASTCBitmapData.fromBytes(bytes);
 	}
 	#end
+
+	public function new(width:Int, height:Int, transparent:Bool = true, fillColor:UInt = 0xFFFFFFFF) {
+		super(width, height, transparent, fillColor);
+		#if webgl_memory
+		this.getGPUMemory = function() {
+			var rectangleTexture:RectangleTexture = this.__texture;
+			if (rectangleTexture != null) {
+				return ASTCFormat.getGPUMemory(rectangleTexture.__format, this.width, this.height);
+			}
+			return 0;
+		};
+		#end
+	}
 }
