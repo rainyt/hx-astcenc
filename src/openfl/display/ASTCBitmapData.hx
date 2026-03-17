@@ -166,7 +166,7 @@ class ASTCBitmapData extends BitmapData {
 		super(width, height, transparent, fillColor);
 		#if webgl_memory
 		this.getGPUMemory = function() {
-			var rectangleTexture:RectangleTexture = this.__texture;
+			var rectangleTexture:RectangleTexture = cast this.__texture;
 			if (rectangleTexture != null) {
 				return ASTCFormat.getGPUMemory(rectangleTexture.__format, this.width, this.height);
 			}
